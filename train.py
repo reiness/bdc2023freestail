@@ -19,20 +19,21 @@ from mltu.tensorflow.metrics import CWERMetric
 from model import train_model
 from configs import ModelConfigs
 
+
 configs = ModelConfigs()
 
-data_path = "Datasets/BDC2023/Data Train for BDC 2023 - Penyisihan/data"
-val_annotation_path = data_path + "/avalidation.txt"
-train_annotation_path = data_path + "/atrain.txt"
+data_path = "DataTrain\data"
+val_annotation_path = os.path.join(data_path, "cavalidation.txt")
+train_annotation_path = os.path.join(data_path, "catrain.txt")
 
 # Read metadata file and parse it
 def read_annotation_file(annotation_path):
     dataset, vocab, max_len = [], set(), 0
     with open(annotation_path, "r") as f:
         for line in tqdm(f.readlines()):
-            line = line.split()
-            image_path = data_path + line[0][1:]
-            label = line[0].split("_")[1]
+            line = line.strip().split("_")
+            image_path = line[0]
+            label = "" if len(line) == 1 else "_".join(line[1:])
             dataset.append([image_path, label])
             vocab.update(list(label))
             max_len = max(max_len, len(label))
@@ -80,7 +81,7 @@ model = train_model(
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=configs.learning_rate), 
     loss=CTCloss(), 
-    metrics=[CWERMetric()],
+    metrics=[CWERMetric(padding_token='padding_token')],
     run_eagerly=False
 )
 model.summary(line_length=110)
@@ -104,6 +105,7 @@ model.fit(
     callbacks=[earlystopper, checkpoint, trainLogger, reduceLROnPlat, tb_callback, model2onnx],
     workers=configs.train_workers
 )
+
 
 # Save training and validation datasets as csv files
 train_data_provider.to_csv(os.path.join(configs.model_path, "train.csv"))
