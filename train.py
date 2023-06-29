@@ -18,8 +18,6 @@ from mltu.tensorflow.metrics import CWERMetric
 
 from model import train_model
 from configs import ModelConfigs
-
-
 configs = ModelConfigs()
 
 data_path = "DataTrain\data"
@@ -56,8 +54,8 @@ train_data_provider = DataProvider(
     transformers=[
         ImageResizer(configs.width, configs.height),
         LabelIndexer(configs.vocab),
-        LabelPadding(max_word_length=configs.max_text_length, padding_value=len(configs.vocab))
-        ],
+        LabelPadding(max_word_length=configs.max_text_length + 1, padding_value=len(configs.vocab) + 2)
+    ],
 )
 
 # Create validation data provider
@@ -69,8 +67,8 @@ val_data_provider = DataProvider(
     transformers=[
         ImageResizer(configs.width, configs.height),
         LabelIndexer(configs.vocab),
-        LabelPadding(max_word_length=configs.max_text_length, padding_value=len(configs.vocab))
-        ],
+        LabelPadding(max_word_length=configs.max_text_length + 1, padding_value=len(configs.vocab) + 2)
+    ],
 )
 
 model = train_model(
@@ -84,17 +82,13 @@ model.compile(
     metrics=[CWERMetric(padding_token='padding_token')],
     run_eagerly=False
 )
-model.summary(line_length=110)
-
-# Define path to save the model
-os.makedirs(configs.model_path, exist_ok=True)
 
 # Define callbacks
-earlystopper = EarlyStopping(monitor="val_CER", patience=10, verbose=1)
-checkpoint = ModelCheckpoint(f"{configs.model_path}/model.h5", monitor="val_CER", verbose=1, save_best_only=True, mode="min")
+earlystopper = EarlyStopping(monitor='val_CER', patience=10, verbose=1)
+checkpoint = ModelCheckpoint(f"{configs.model_path}/model.h5", monitor='val_CER', verbose=1, save_best_only=True, mode='min')
 trainLogger = TrainLogger(configs.model_path)
-tb_callback = TensorBoard(f"{configs.model_path}/logs", update_freq=1)
-reduceLROnPlat = ReduceLROnPlateau(monitor="val_CER", factor=0.9, min_delta=1e-10, patience=5, verbose=1, mode="auto")
+tb_callback = TensorBoard(f'{configs.model_path}/logs', update_freq=1)
+reduceLROnPlat = ReduceLROnPlateau(monitor='val_CER', factor=0.9, min_delta=1e-10, patience=5, verbose=1, mode='auto')
 model2onnx = Model2onnx(f"{configs.model_path}/model.h5")
 
 # Train the model
@@ -105,7 +99,6 @@ model.fit(
     callbacks=[earlystopper, checkpoint, trainLogger, reduceLROnPlat, tb_callback, model2onnx],
     workers=configs.train_workers
 )
-
 
 # Save training and validation datasets as csv files
 train_data_provider.to_csv(os.path.join(configs.model_path, "train.csv"))
