@@ -1,1 +1,4 @@
-mltu==0.1.3
+mltu==1.0.12
+librosa
+pillow
+matplotlib
