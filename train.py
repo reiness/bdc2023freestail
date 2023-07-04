@@ -20,7 +20,7 @@ from model import train_model
 from configs import ModelConfigs
 configs = ModelConfigs()
 
-data_path = "DataTrain/data/"
+data_path = "DataTrain/exp/"
 val_annotation_path = os.path.join(data_path + "/cavalidation.txt")
 train_annotation_path = os.path.join(data_path + "/catrain.txt")
 
