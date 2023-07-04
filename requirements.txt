@@ -2,3 +2,6 @@ mltu==1.0.12
 librosa
 pillow
 matplotlib
+tensorflow
+onnx
+tf2onnx
