@@ -31,11 +31,13 @@ def read_annotation_file(annotation_path):
         for line in tqdm(f.readlines()):
             line = line.split()
             image_path = data_path + line[0][1:]
-            label = line[0].split("_")[1]
+            label_parts = line[0].split("_")
+            label = label_parts[1].replace('.png', '')
             dataset.append([image_path, label])
             vocab.update(list(label))
             max_len = max(max_len, len(label))
     return dataset, sorted(vocab), max_len
+
 
 train_dataset, train_vocab, max_train_len = read_annotation_file(train_annotation_path)
 val_dataset, val_vocab, max_val_len = read_annotation_file(val_annotation_path)
