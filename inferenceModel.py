@@ -3,7 +3,7 @@ import typing
 import numpy as np
 
 from mltu.inferenceModel import OnnxInferenceModel
-from mltu.utils.text_utils import ctc_decoder, get_cer
+from mltu.text_utils import ctc_decoder, get_cer
 
 class ImageToWordModel(OnnxInferenceModel):
     def __init__(self, char_list: typing.Union[str, list], *args, **kwargs):
@@ -27,11 +27,11 @@ if __name__ == "__main__":
     from tqdm import tqdm
     from mltu.configs import BaseModelConfigs
     
-    configs = BaseModelConfigs.load("Models/1_image_to_word/202211270035/configs.yaml")
+    configs = BaseModelConfigs.load("Models/.../configs.yaml")
 
     model = ImageToWordModel(model_path=configs.model_path, char_list=configs.vocab)
 
-    df = pd.read_csv("Models/1_image_to_word/202211270035/val.csv").dropna().values.tolist()
+    df = pd.read_csv("Models/.../val.csv").dropna().values.tolist()
 
     accum_cer = []
     for image_path, label in tqdm(df[:20]):

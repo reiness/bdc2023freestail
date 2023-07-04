@@ -9,29 +9,29 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, T
 
 from mltu.dataProvider import DataProvider
 from mltu.preprocessors import ImageReader
-from mltu.annotations.images import CVImage
+# from mltu.annotations.images import CVImage
 from mltu.transformers import ImageResizer, LabelIndexer, LabelPadding
-from mltu.tensorflow.losses import CTCloss
-from mltu.tensorflow.callbacks import Model2onnx, TrainLogger
-from mltu.tensorflow.metrics import CWERMetric
+from mltu.losses import CTCloss
+from mltu.callbacks import Model2onnx, TrainLogger
+from mltu.metrics import CWERMetric
 
 
 from model import train_model
 from configs import ModelConfigs
 configs = ModelConfigs()
 
-data_path = "DataTrain\data"
-val_annotation_path = os.path.join(data_path, "cavalidation.txt")
-train_annotation_path = os.path.join(data_path, "catrain.txt")
+data_path = "DataTrain/data/"
+val_annotation_path = os.path.join(data_path + "/cavalidation.txt")
+train_annotation_path = os.path.join(data_path + "/catrain.txt")
 
 # Read metadata file and parse it
 def read_annotation_file(annotation_path):
     dataset, vocab, max_len = [], set(), 0
     with open(annotation_path, "r") as f:
         for line in tqdm(f.readlines()):
-            line = line.strip().split("_")
-            image_path = line[0]
-            label = "" if len(line) == 1 else "_".join(line[1:])
+            line = line.split()
+            image_path = data_path + line[0][1:]
+            label = line[0].split("_")[1]
             dataset.append([image_path, label])
             vocab.update(list(label))
             max_len = max(max_len, len(label))
@@ -50,12 +50,12 @@ train_data_provider = DataProvider(
     dataset=train_dataset,
     skip_validation=True,
     batch_size=configs.batch_size,
-    data_preprocessors=[ImageReader(CVImage)],
+    data_preprocessors=[ImageReader()],
     transformers=[
         ImageResizer(configs.width, configs.height),
         LabelIndexer(configs.vocab),
-        LabelPadding(max_word_length=configs.max_text_length + 1, padding_value=len(configs.vocab) + 2)
-    ],
+        LabelPadding(max_word_length=configs.max_text_length, padding_value=len(configs.vocab))
+        ],
 )
 
 # Create validation data provider
@@ -63,23 +63,24 @@ val_data_provider = DataProvider(
     dataset=val_dataset,
     skip_validation=True,
     batch_size=configs.batch_size,
-    data_preprocessors=[ImageReader(CVImage)],
+    data_preprocessors=[ImageReader()],
     transformers=[
         ImageResizer(configs.width, configs.height),
         LabelIndexer(configs.vocab),
-        LabelPadding(max_word_length=configs.max_text_length + 1, padding_value=len(configs.vocab) + 2)
-    ],
+        LabelPadding(max_word_length=configs.max_text_length, padding_value=len(configs.vocab))
+        ],
 )
 
 model = train_model(
     input_dim = (configs.height, configs.width, 3),
     output_dim = len(configs.vocab),
 )
+
 # Compile the model and print summary
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=configs.learning_rate), 
     loss=CTCloss(), 
-    metrics=[CWERMetric(padding_token='padding_token')],
+    metrics=[CWERMetric()],
     run_eagerly=False
 )
 
