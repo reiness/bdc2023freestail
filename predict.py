@@ -1,6 +1,7 @@
 import os
 import cv2
 import numpy as np
+from natsort import natsorted
 
 from mltu.inferenceModel import OnnxInferenceModel
 from mltu.text_utils import ctc_decoder
@@ -31,6 +32,9 @@ if __name__ == "__main__":
     # Specify the folder containing preprocessed images
     folder_path = "DataTest/preprocessed"
 
+    # Get a sorted list of image files in the folder using natural sorting
+    image_files = natsorted(os.listdir(folder_path))
+
     # Specify the output file to store the predictions
     output_file = "predictions.txt"
 
@@ -38,8 +42,8 @@ if __name__ == "__main__":
         # Write the header row
         f.write("imagefile,prediction_text\n")
 
-        # Iterate through each image file in the folder
-        for image_file in tqdm(os.listdir(folder_path)):
+        # Iterate through each image file in the sorted order
+        for image_file in tqdm(image_files):
             # Read the image
             image_path = os.path.join(folder_path, image_file)
             image = cv2.imread(image_path)
