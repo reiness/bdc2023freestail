@@ -20,19 +20,31 @@ from model import train_model
 from configs import ModelConfigs
 configs = ModelConfigs()
 
-data_path = "DataTrain/exp/"
+data_path = "DataTrain/preprocessed2/"
 val_annotation_path = os.path.join(data_path + "/cavalidation.txt")
 train_annotation_path = os.path.join(data_path + "/catrain.txt")
 
 # Read metadata file and parse it
+# def read_annotation_file(annotation_path):
+#     dataset, vocab, max_len = [], set(), 0
+#     with open(annotation_path, "r") as f:
+#         for line in tqdm(f.readlines()):
+#             line = line.split()
+#             image_path = data_path + line[0][1:]
+#             label_parts = line[0].split("_")
+#             label = label_parts[1].replace('.png', '')
+#             dataset.append([image_path, label])
+#             vocab.update(list(label))
+#             max_len = max(max_len, len(label))
+#     return dataset, sorted(vocab), max_len
+
 def read_annotation_file(annotation_path):
     dataset, vocab, max_len = [], set(), 0
     with open(annotation_path, "r") as f:
         for line in tqdm(f.readlines()):
             line = line.split()
             image_path = data_path + line[0][1:]
-            label_parts = line[0].split("_")
-            label = label_parts[1].replace('.png', '')
+            label = line[0].split("_")[1]
             dataset.append([image_path, label])
             vocab.update(list(label))
             max_len = max(max_len, len(label))
@@ -85,6 +97,7 @@ model.compile(
     metrics=[CWERMetric()],
     run_eagerly=False
 )
+
 
 # Define callbacks
 earlystopper = EarlyStopping(monitor='val_CER', patience=10, verbose=1)
